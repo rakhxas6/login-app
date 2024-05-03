@@ -4,6 +4,23 @@ import pkg from "jsonwebtoken";
 const { jwt } = pkg;
 import ENV from "../config.js";
 
+// middleware for verify user
+
+export async function verifyUser(req, res, next) {
+  try {
+    const { username } = req.method == "GET" ? req.query : req.body;
+
+    // check the user existence
+    let exist = await UserModel.findOne({ username });
+    if (!exist) return res.status(404).send({ error: "Can't find the user" });
+    next();
+
+    
+  } catch (error) {
+    return res.status(404).send({ error: "Authentication Error" });
+  }
+}
+
 /** POST: http://localhost:8080/api/register 
  * @param : {
   "username" : "example123",

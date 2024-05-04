@@ -1,7 +1,7 @@
 import UserModel from "../model/User.model.js";
 import bcrypt from "bcrypt";
-import pkg from "jsonwebtoken";
-const { jwt } = pkg;
+import jwt from "jsonwebtoken";
+
 import ENV from "../config.js";
 
 // middleware for verify user
@@ -14,8 +14,6 @@ export async function verifyUser(req, res, next) {
     let exist = await UserModel.findOne({ username });
     if (!exist) return res.status(404).send({ error: "Can't find the user" });
     next();
-
-    
   } catch (error) {
     return res.status(404).send({ error: "Authentication Error" });
   }
@@ -179,7 +177,23 @@ body: {
 */
 
 export async function updateUser(req, res) {
-  res.json("updateUser route");
+  try {
+    // const id = req.query.id;
+    const { userId } = req.user;
+    if (userId) {
+      const body = req.body;
+      //update the data
+
+      UserModel.updateOne({ _id: userId }, body, function (err, data) {
+        if (err) throw err;
+        return res.status(201).send({ msg: "Record Updated...!" });
+      });
+    } else {
+      return res.status(401).send({ error: "User Not Found...!" });
+    }
+  } catch (error) {
+    return res.status(401).send({ error });
+  }
 }
 
 /** GET: http://localhost:8080/api/generateOTP */

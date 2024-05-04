@@ -3,6 +3,7 @@ const router = Router();
 
 // import all controllers
 import * as controller from "../controllers/appControllers.js";
+import Auth from "../middleware/auth.js";
 
 // POST Methods
 router.route("/register").post(controller.register); //register user
@@ -17,7 +18,7 @@ router.route("/verifyOTP").get(controller.verifyOTP); //verify the generated ran
 router.route("/createResetSession").get(controller.createResetSession); //reset all  the variables
 
 //PUT Method
-router.route("/updateuser").put(controller.updateUser); //to update the user profile
+router.route("/updateuser").put(Auth, controller.updateUser); //to update the user profile
 router.route("/resetPassword").put(controller.resetPassword); // to reset the password
 
 export default router;

@@ -147,6 +147,7 @@ export async function login(req, res) {
 
 export async function getUser(req, res) {
   const { username } = req.params;
+  // console.log(username)
 
   try {
     if (!username) return res.status(501).send({ error: "Invalid Username" });
@@ -154,11 +155,12 @@ export async function getUser(req, res) {
     UserModel.findOne({ username }, function (err, user) {
       if (err) return res.status(500).send({ err });
       if (!user)
-        return res.status(501).send({ error: "Couldn't Find The User" });
+        return res.status(501).send({ error: "Couldn't Find the User" });
 
       /** remove password from user */
       // mongoose return unnecessary data with object so convert it into json
       const { password, ...rest } = Object.assign({}, user.toJSON());
+
       return res.status(201).send(rest);
     });
   } catch (error) {
@@ -213,19 +215,56 @@ export async function verifyOTP(req, res) {
   if (parseInt(req.app.locals.OTP) == parseInt(code)) {
     req.app.locals.OTP = null;
     req.app.locals.reserSession = true; //start session for reset password
-    return res.status(201).send({msg: "Verify Successfully!"})
+    return res.status(201).send({ msg: "Verify Successfully!" });
   }
-    return res.status(400).send({ error: "Invalid OTP" });
+  return res.status(400).send({ error: "Invalid OTP" });
 }
 
 // successfully redirect user when OTP is valid
 /** GET: http://localhost:8080/api/createResetSession */
 export async function createResetSession(req, res) {
-  res.json("createResetSession route");
+  if (req.app.locals.reserSession) {
+    req.app.locals.reserSession = false; //allow access to this route only once
+    return res.status(201).send({ msg: "access granted" });
+  }
+  return res.status(440).send({ error: "Session expired!" });
 }
 
 // update the password when we have valid session
 /** PUT: http://localhost:8080/api/resetPassword */
 export async function resetPassword(req, res) {
-  res.json("resetPassword route");
+  try {
+    if(!req.app.locals.reserSession) return res.status(440).send({error: "Session Expired!"})
+    const { username, password } = req.body;
+    try {
+      UserModel.findOne({ username })
+        .then((user) => {
+          bcrypt
+            .hash(password, 10)
+            .then((hashedPassword) => {
+              UserModel.updateOne(
+                { username: user.username },
+                { password: hashedPassword },
+                function (err, data) {
+                  if (err) throw err;
+                  req.app.locals.resetSession = false; //resetsession
+                  return res.status(201).send({ msg: "Record Updated...!" });
+                }
+              );
+            })
+            .catch((e) => {
+              return res.status(500).send({
+                error: "Enable to hashed password",
+              });
+            });
+        })
+        .catch((error) => {
+          return res.status(404).send({ error: "Username not found" });
+        });
+    } catch (error) {
+      return res.stauts(500).send({ error });
+    }
+  } catch (error) {
+    return res.status(401).send({ error });
+  }
 }

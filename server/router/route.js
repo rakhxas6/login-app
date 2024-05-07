@@ -7,7 +7,7 @@ import Auth, { localVariables } from "../middleware/auth.js";
 
 // POST Methods
 router.route("/register").post(controller.register); //register user
-// router.route('/registerMail').post() //send the mail
+router.route('/registerMail').post() //send the mail
 router.route("/authenticate").post((req, res) => res.end()); //aunthenticate the user
 router.route("/login").post(controller.verifyUser, controller.login); //login in app
 
@@ -21,6 +21,8 @@ router.route("/createResetSession").get(controller.createResetSession); //reset 
 
 //PUT Method
 router.route("/updateuser").put(Auth, controller.updateUser); //to update the user profile
-router.route("/resetPassword").put(controller.resetPassword); // to reset the password
+router
+  .route("/resetPassword")
+  .put(controller.verifyUser, controller.resetPassword); // to reset the password
 
 export default router;

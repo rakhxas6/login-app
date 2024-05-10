@@ -1,37 +1,48 @@
 import React, { useState } from "react";
 
 import avatar from "../assets/profile.png";
-import { Toaster } from "react-hot-toast";
+import useFetch from "../hooks/fetch.hook";
+import toast, { Toaster } from "react-hot-toast";
 import { useFormik } from "formik";
 import { Link } from "react-router-dom";
-
 
 import { profileValidation } from "../helper/validate";
 import { useNavigate } from "react-router-dom";
 import convertToBase64 from "../helper/convert";
-// import { useAuthStore } from '../store/store'
+// import { useAuthStore } from "../store/store";
+import { updateUser } from "../helper/helper";
 
 import styles from "../styles/Username.module.css";
 import extend from "../styles/Profile.module.css";
 
 export default function Profile() {
   const [file, setFile] = useState();
+  const [{ isLoading, apiData, serverError }] = useFetch();
   const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      mobile: "",
-      address: "",
+      firstName: apiData?.firstName || "",
+      lastName: apiData?.lastName || "",
+      email: apiData?.email || "",
+      mobile: apiData?.mobile || "",
+      address: apiData?.address || "",
     },
+    enableReinitialize: true,
     validate: profileValidation,
     validateOnBlur: false,
     validateOnChange: false,
     onSubmit: async (values) => {
-      values = await Object.assign(values, { profile: file || "" });
-      // console.log(values);
+      values = await Object.assign(values, {
+        profile: file || apiData?.profile || "",
+      });
+      console.log(values);
+      let updatePromise = updateUser(values);
+
+      toast.promise(updatePromise, {
+        loading: "Updating...",
+        success: <b>Update Success</b>,
+      });
     },
   });
 
@@ -47,7 +58,11 @@ export default function Profile() {
     localStorage.removeItem("token");
     navigate("/");
   }
-
+  if (isLoading) return <h1 className="text-2xl font-bold">isLoading</h1>;
+  if (serverError)
+    return (
+      <h1 className="text-xl text-red-500 font-bold">{serverError.message}</h1>
+    );
   return (
     <div className="container mx-auto">
       <Toaster position="top-center" reverseOrder={false}></Toaster>
@@ -68,7 +83,7 @@ export default function Profile() {
             <div className="profile flex justify-center py-2 ">
               <label htmlFor="profile">
                 <img
-                  src={file || avatar}
+                  src={apiData?.profile || file || avatar}
                   className={`${styles.profile_img} ${extend.profile_img}`}
                   alt="avatar"
                 />

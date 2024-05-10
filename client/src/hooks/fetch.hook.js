@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { getUsername } from "../helper/helper";
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
-
 
 // custom hooks
 export default function useFetch(query) {
@@ -13,15 +13,17 @@ export default function useFetch(query) {
   });
 
   useEffect(() => {
-    if (!query) return;
+    
     const fetchData = async () => {
       try {
         setData((prev) => ({
           ...prev,
           isLoading: true,
         }));
-
-        const { data, status } = await axios.get(`/api/${query}`); //object
+        const { username } = !query ? await getUsername() : '';
+        const { data, status } = !query
+          ? await axios.get(`/api/user/${username}`)
+          : await axios.get(`/api/${query}`); //object
         if (status === 201) {
           setData((prev) => ({
             ...prev,
@@ -36,9 +38,9 @@ export default function useFetch(query) {
       } catch (error) {
         setData((prev) => ({ ...prev, isLoading: false, serverError: error }));
       }
-      };
-      fetchData();
+    };
+    fetchData();
   }, [query]);
-    
-return [getData, setData];  //array
+
+  return [getData, setData]; //array
 }

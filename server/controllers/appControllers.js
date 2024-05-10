@@ -147,7 +147,6 @@ export async function login(req, res) {
 
 export async function getUser(req, res) {
   const { username } = req.params;
-  // console.log(username)
 
   try {
     if (!username) return res.status(501).send({ error: "Invalid Username" });
@@ -224,8 +223,7 @@ export async function verifyOTP(req, res) {
 /** GET: http://localhost:8080/api/createResetSession */
 export async function createResetSession(req, res) {
   if (req.app.locals.reserSession) {
-    req.app.locals.reserSession = false; //allow access to this route only once
-    return res.status(201).send({ msg: "access granted" });
+    return res.status(201).send({ flag: req.app.locals.reserSession });
   }
   return res.status(440).send({ error: "Session expired!" });
 }
@@ -234,7 +232,8 @@ export async function createResetSession(req, res) {
 /** PUT: http://localhost:8080/api/resetPassword */
 export async function resetPassword(req, res) {
   try {
-    if(!req.app.locals.reserSession) return res.status(440).send({error: "Session Expired!"})
+    if (!req.app.locals.reserSession)
+      return res.status(440).send({ error: "Session Expired!" });
     const { username, password } = req.body;
     try {
       UserModel.findOne({ username })

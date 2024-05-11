@@ -14,7 +14,7 @@ export default function Username() {
 
   const formik = useFormik({
     initialValues: {
-      username: "example123",
+      username: "",
     },
     validate: usernameValidate,
     validateOnBlur: false,
@@ -22,7 +22,7 @@ export default function Username() {
     onSubmit: async (values) => {
       // console.log(values)
       setUsername(values.username);
-      navigate('/password')
+      navigate("/password");
     },
   });
 

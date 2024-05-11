@@ -166,7 +166,6 @@ export async function getUser(req, res) {
     return res.status(404).send({ error: "Cannot Find User Data" });
   }
 }
-
 /** PUT: http://localhost:8080/api/updateuser 
  * @param: {
   "header" : "<token>"
